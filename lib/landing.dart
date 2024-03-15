@@ -3,7 +3,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:zeweter_app/AddPage.dart';
 import 'package:zeweter_app/favpages/favpage.dart';
 import 'package:zeweter_app/homepage/HomePage.dart';
-import 'package:zeweter_app/ProfilePage.dart';
+import 'package:zeweter_app/profilepage/ProfilePage.dart';
 import 'package:zeweter_app/Searchpage.dart';
 
 class Landing extends StatefulWidget {
