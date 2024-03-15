@@ -1,0 +1,12 @@
+Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      child: Container(
+          padding: EdgeInsetsDirectional.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(width: 1)),
+          child: TextField(
+            decoration: InputDecoration(
+                suffixIcon: Icon(Iconsax.search_normal), hintText: 'search'),
+          )),
+    );

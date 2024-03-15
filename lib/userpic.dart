@@ -14,7 +14,7 @@ class UserPic extends StatelessWidget {
         borderRadius:
             BorderRadius.circular(100), // Adjust border radius as needed
       ),
-      padding: EdgeInsets.all(14),
+      padding: const EdgeInsets.all(14),
       child: const ImageIcon(
         AssetImage("lib/assets/icons/user.png"),
         color: Colors.black,
