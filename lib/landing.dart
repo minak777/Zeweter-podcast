@@ -33,7 +33,7 @@ class _LandingState extends State<Landing> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //appBar: AppBar(),
+      resizeToAvoidBottomInset: false,
       body: Padding(
         padding: const EdgeInsets.only(top: 50), // Add padding to the top
         child: _bodyWidgets[_selectedIndex], // Display the selected widget

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:zeweter_app/podcast.dart';
 
 class FavPage extends StatefulWidget {
   const FavPage({Key? key}) : super(key: key);
@@ -60,7 +61,13 @@ class _FavPageState extends State<FavPage> {
                         child: Text('Unfollow'),
                       ),
                       title: Text('Sportpod'),
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => Podcast(),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:zeweter_app/login-signup/input_fields.dart';
+import 'package:zeweter_app/components/input_fields.dart';
+import 'package:zeweter_app/services/firestore.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -10,6 +11,8 @@ class SignUp extends StatefulWidget {
 }
 
 class _SignUpState extends State<SignUp> {
+  final FirestoreService firestoreService = FirestoreService();
+
   TextEditingController nameController = TextEditingController();
   TextEditingController emailcontroller = TextEditingController();
   TextEditingController passwordcontroller =
@@ -36,6 +39,7 @@ class _SignUpState extends State<SignUp> {
             child: ElevatedButton(
               onPressed: () {
                 // Use email and password as needed
+                firestoreService.addUserNAme(nameController.text);
                 GoRouter.of(context).go('/landing');
               },
               child: const Text(' Sign up  '),

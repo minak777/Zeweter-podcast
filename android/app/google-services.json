@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "990560201947",
+    "project_id": "zeweter-5e751",
+    "storage_bucket": "zeweter-5e751.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:990560201947:android:823a970f864e423dcdf0fe",
+        "android_client_info": {
+          "package_name": "com.example.zeweter_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDE5KWBo1LuLhZ2R2Ija7waFUeiBEgW-uo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
