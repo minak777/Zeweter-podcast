@@ -29,8 +29,7 @@ class _EditProfState extends State<EditProf> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              InputBox(
-                  description: 'User name', controller: UsernameController),
+              InputBox(HintTxt: 'User name', controller: UsernameController),
             ],
           ),
           actions: <Widget>[

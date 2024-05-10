@@ -1,23 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:zeweter_app/components/input_fields.dart';
+import 'package:zeweter_app/services/firestore.dart';
 
 class Login extends StatefulWidget {
-  const Login({super.key});
+  const Login({Key? key}) : super(key: key);
 
   @override
   State<Login> createState() => _LoginState();
 }
 
 class _LoginState extends State<Login> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirestoreService _firestoreService = FirestoreService();
+
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
+  Future<void> signIn() async {
+    try {
+      final UserCredential userCredential =
+          await _auth.signInWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+
+      // If login is successful, retrieve the user's additional data from Firestore
+      final userData =
+          await _firestoreService.getUser(userCredential.user!.uid);
+      final username = userData['username'];
+
+      // Navigate to landing page or any other page
+      GoRouter.of(context).go('/landing');
+    } catch (e) {
+      // Handle login errors
+      print('Failed to sign in: $e');
+    }
   }
 
   @override
@@ -36,20 +55,17 @@ class _LoginState extends State<Login> {
               ),
             ),
             InputBox(
-              description: 'Email',
+              HintTxt: 'Email',
               controller: emailController,
             ),
             InputBox(
-              description: 'Password',
+              HintTxt: 'Password',
               controller: passwordController,
             ),
             Padding(
               padding: const EdgeInsets.only(top: 10),
               child: ElevatedButton(
-                onPressed: () {
-                  // Use email and password as needed
-                  GoRouter.of(context).go('/landing');
-                },
+                onPressed: signIn,
                 child: const Text('Login'),
               ),
             ),
@@ -59,8 +75,6 @@ class _LoginState extends State<Login> {
                 const Text("Don't have an account? "),
                 TextButton(
                   onPressed: () {
-                    String email = emailController.text;
-                    String password = passwordController.text;
                     GoRouter.of(context).go('/signup');
                   },
                   child: const Text('Signup'),
