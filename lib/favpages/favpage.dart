@@ -62,11 +62,11 @@ class _FavPageState extends State<FavPage> {
                       ),
                       title: Text('Sportpod'),
                       onTap: () {
-                        Navigator.of(context).push(
+                        /* Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => Podcast(),
                           ),
-                        );
+                        );*/
                       },
                     ),
                   ),

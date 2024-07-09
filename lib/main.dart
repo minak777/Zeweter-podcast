@@ -44,6 +44,7 @@ class MyApp extends StatelessWidget {
     GoRoute(path: '/add', builder: (context, state) => const AddPage()),
     GoRoute(path: '/favorites', builder: (context, state) => const FavPage()),
     GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
-    GoRoute(path: '/podcast', builder: (context, state) => const Podcast()),
+
+    //GoRoute(path: '/podcast', builder: (context, state) => const Podcast(podcastId: podcastId)),
   ]);
 }

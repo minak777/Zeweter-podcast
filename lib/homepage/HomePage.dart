@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:zeweter_app/homepage/hi_notify.dart';
 import 'package:zeweter_app/podcast.dart';
 
@@ -11,13 +11,19 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final CollectionReference podcastsCollection =
+      FirebaseFirestore.instance.collection('podcasts');
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Column(
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Home Page'),
+      ),
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Hi,user and notification
+          // Hi, user and notification
           const Hi_notify(),
 
           // For you
@@ -29,54 +35,88 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Expanded(
-            child: GridView.builder(
-              itemCount: 16,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 1,
-              ),
-              itemBuilder: (context, index) {
-                return InkWell(
-                  onTap: () {
-                    // Navigate to the new page
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => Podcast(),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Image.asset(
-                            'lib/assets/mic.jpg',
-                            fit: BoxFit.cover, // Adjust the fit as needed
-                          ),
-                        ),
-                        const SizedBox(
-                            height:
-                                8), // Add spacing between the image and text
-                        const Text(
-                          'Sportpod',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Text(
-                          'Ethiopian premium league review',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                          maxLines: 1, // Set maximum number of lines
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
+            child: StreamBuilder<QuerySnapshot>(
+              stream: podcastsCollection.snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Center(child: Text('No podcasts found.'));
+                }
+
+                final podcasts = snapshot.data!.docs;
+
+                return GridView.builder(
+                  itemCount: podcasts.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 1,
                   ),
+                  itemBuilder: (context, index) {
+                    try {
+                      final podcast = podcasts[index];
+                      final podcastData =
+                          podcast.data() as Map<String, dynamic>;
+
+                      final podcastId = podcast.id;
+                      final imageUrl = podcastData['image'] ?? '';
+                      final title = podcastData['title'] ?? 'No title';
+                      final description =
+                          podcastData['description'] ?? 'No description';
+
+                      return InkWell(
+                        onTap: () {
+                          // Navigate to the new page with podcastId
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  Podcast(podcastId: podcastId),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: imageUrl.isNotEmpty
+                                    ? Image.network(imageUrl, fit: BoxFit.cover)
+                                    : Container(color: Colors.grey),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                title,
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                description,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    } catch (e) {
+                      return ListTile(
+                        title: Text('Error loading podcast'),
+                        subtitle: Text(e.toString()),
+                      );
+                    }
+                  },
                 );
               },
             ),
