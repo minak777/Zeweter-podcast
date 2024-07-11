@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:zeweter_app/AddPage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:zeweter_app/favpages/favpage.dart';
 import 'package:zeweter_app/homepage/HomePage.dart';
 import 'package:zeweter_app/profilepage/ProfilePage.dart';
@@ -15,14 +15,46 @@ class Landing extends StatefulWidget {
 
 class _LandingState extends State<Landing> {
   int _selectedIndex = 0;
+  List<Map<String, String>> _episodes = [];
+  bool _isLoading = true;
 
-  final List<Widget> _bodyWidgets = [
-    const HomePage(), // Replace with your Home widget
-    const SearchPage(), // Replace with your Search widget
-    const AddPage(), // Replace with your Add widget
-    const FavPage(), // Replace with your Favorites widget
-    const ProfilePage(), // Replace with your Profile widget
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchEpisodes();
+  }
+
+  Future<void> _fetchEpisodes() async {
+    try {
+      QuerySnapshot podcastSnapshot =
+          await FirebaseFirestore.instance.collection('podcasts').get();
+      List<Map<String, String>> episodes = [];
+
+      for (var doc in podcastSnapshot.docs) {
+        CollectionReference episodesRef = doc.reference.collection('episodes');
+        QuerySnapshot episodesSnapshot = await episodesRef.get();
+
+        for (var episodeDoc in episodesSnapshot.docs) {
+          episodes.add({
+            'title': episodeDoc['title'],
+            'description': episodeDoc['description'],
+            'audio': episodeDoc['audio'],
+            'image': episodeDoc['image'],
+          });
+        }
+      }
+
+      setState(() {
+        _episodes = episodes;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching episodes: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -34,22 +66,26 @@ class _LandingState extends State<Landing> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      body: Padding(
-        padding: const EdgeInsets.only(top: 50), // Add padding to the top
-        child: _bodyWidgets[_selectedIndex], // Display the selected widget
-      ),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.only(top: 50),
+              child: IndexedStack(
+                index: _selectedIndex,
+                children: [
+                  const HomePage(),
+                  SearchPage(episodes: _episodes),
+                  const FavPage(),
+                  const ProfilePage(),
+                ],
+              ),
+            ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Iconsax.home), label: 'Home'),
           BottomNavigationBarItem(
               icon: Icon(Iconsax.search_normal), label: 'Search'),
-          BottomNavigationBarItem(
-              icon: Icon(
-                Iconsax.add_circle,
-                size: 45,
-              ),
-              label: ''),
           BottomNavigationBarItem(
               icon: Icon(Iconsax.heart), label: 'Favorites'),
           BottomNavigationBarItem(icon: Icon(Iconsax.user), label: 'Profile'),
