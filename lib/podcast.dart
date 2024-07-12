@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zeweter_app/components/ProfilePic.dart';
 import 'package:zeweter_app/components/TitleText.dart';
 import 'package:zeweter_app/player.dart';
@@ -14,6 +15,51 @@ class Podcast extends StatefulWidget {
 }
 
 class _PodcastState extends State<Podcast> {
+  bool isFavorite = false;
+  final userId = FirebaseAuth.instance.currentUser!.uid;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfFavorite();
+  }
+
+  Future<void> _checkIfFavorite() async {
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('favorites')
+        .doc(widget.podcastId)
+        .get();
+
+    setState(() {
+      isFavorite = doc.exists;
+    });
+  }
+
+  Future<void> _toggleFavorite() async {
+    final userRef = FirebaseFirestore.instance.collection('users').doc(userId);
+    final podcastRef =
+        FirebaseFirestore.instance.collection('podcasts').doc(widget.podcastId);
+
+    if (isFavorite) {
+      await userRef.collection('favorites').doc(widget.podcastId).delete();
+    } else {
+      final podcastDoc = await podcastRef.get();
+      if (podcastDoc.exists) {
+        final podcastData = podcastDoc.data()!;
+        await userRef.collection('favorites').doc(widget.podcastId).set({
+          'title': podcastData['title'],
+          'image': podcastData['image'],
+        });
+      }
+    }
+
+    setState(() {
+      isFavorite = !isFavorite;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final episodesCollection = FirebaseFirestore.instance
@@ -35,7 +81,32 @@ class _PodcastState extends State<Podcast> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Center(child: ProfilePic()),
-          TitleText(title: 'Episodes'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 17),
+                    child: Text(
+                      'Episodes',
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10, top: 10),
+                    child: ElevatedButton(
+                      onPressed: _toggleFavorite,
+                      child: Text(isFavorite ? 'Favorite' : 'Add Favorite'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: episodesCollection.snapshots(),
