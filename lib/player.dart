@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:zeweter_app/comments.dart'; // Update this import path
 
 class Player extends StatefulWidget {
-  final String title;
-  final String description;
+  final String title; // Podcast ID
+  final String description; // Episode ID
   final String audioUrl;
   final String image;
 
@@ -204,6 +205,20 @@ class _PlayerState extends State<Player> {
             Navigator.of(context).pop();
           },
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.comment),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (context) => CommentSection(
+                  title: widget.title, // Podcast ID
+                  description: widget.description, // Episode ID
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(2.0),
