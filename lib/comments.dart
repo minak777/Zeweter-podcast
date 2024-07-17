@@ -1,6 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CommentSection extends StatefulWidget {
   final String title; // podcastId
@@ -20,17 +20,34 @@ class _CommentSectionState extends State<CommentSection> {
   final TextEditingController _commentController = TextEditingController();
   late String _username;
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   @override
   void initState() {
     super.initState();
+    _username = 'Loading...'; // Set default value to 'Loading...'
     _getUserInfo();
   }
 
-  void _getUserInfo() {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
+  Future<void> _getUserInfo() async {
+    try {
+      final currentUser = _auth.currentUser;
+      if (currentUser != null) {
+        final userData =
+            await _firestore.collection('users').doc(currentUser.uid).get();
+        setState(() {
+          _username = userData.get('username') ?? 'Anonymous';
+        });
+      } else {
+        setState(() {
+          _username = 'No User';
+        });
+      }
+    } catch (e) {
+      print('Failed to load user data: $e');
       setState(() {
-        _username = user.displayName ?? 'Anonymous';
+        _username = 'Error';
       });
     }
   }
@@ -41,14 +58,12 @@ class _CommentSectionState extends State<CommentSection> {
 
     try {
       final commentRef = FirebaseFirestore.instance
-          .collection('podcasts')
-          .doc(podcastId)
-          .collection('episodes')
-          .doc(episodeId)
           .collection('comments')
           .doc(); // Automatically generate a unique ID for the new comment
 
       await commentRef.set({
+        'podcastId': podcastId,
+        'episodeId': episodeId,
         'comment': commentText,
         'username': username,
         'timestamp': Timestamp.now(),
@@ -71,11 +86,10 @@ class _CommentSectionState extends State<CommentSection> {
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
-                  .collection('podcasts')
-                  .doc(widget.title) // podcastId
-                  .collection('episodes')
-                  .doc(widget.description) // episodeId
                   .collection('comments')
+                  .where('podcastId', isEqualTo: widget.title) // podcastId
+                  .where('episodeId',
+                      isEqualTo: widget.description) // episodeId
                   .orderBy('timestamp', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
@@ -123,7 +137,7 @@ class _CommentSectionState extends State<CommentSection> {
                     final commentText = _commentController.text;
                     if (commentText.isNotEmpty) {
                       addComment(widget.title, widget.description, commentText,
-                          _username);
+                          _username); // Pass the fetched username
                       _commentController.clear();
                     }
                   },

@@ -212,8 +212,8 @@ class _PlayerState extends State<Player> {
               showModalBottomSheet(
                 context: context,
                 builder: (context) => CommentSection(
-                  title: widget.title, // Podcast ID
-                  description: widget.description, // Episode ID
+                  description: widget.description,
+                  title: widget.title,
                 ),
               );
             },
