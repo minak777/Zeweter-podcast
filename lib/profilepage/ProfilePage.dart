@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:zeweter_app/components/ProfilePic.dart';
 import 'package:zeweter_app/profilepage/Proflist.dart';
 import 'package:zeweter_app/profilepage/editprof.dart';
@@ -14,29 +14,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  bool _isDarkMode = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTheme();
-  }
-
-  Future<void> _loadTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _isDarkMode = prefs.getBool('isDarkMode') ?? false;
-    });
-  }
-
-  Future<void> _toggleTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _isDarkMode = !_isDarkMode;
-      prefs.setBool('isDarkMode', _isDarkMode);
-    });
-  }
-
   void _logout() async {
     await FirebaseAuth.instance.signOut();
     GoRouter.of(context).go('/login');
@@ -133,11 +110,6 @@ class _ProfilePageState extends State<ProfilePage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 50),
               child: ProfilePic(),
-            ),
-            EditProf(),
-            ProfList(
-              plist: 'Subscription',
-              callback: () {},
             ),
             ProfList(
               plist: 'Settings',
