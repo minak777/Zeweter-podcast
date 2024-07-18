@@ -65,6 +65,59 @@ class _ProfilePicState extends State<ProfilePic> {
     }
   }
 
+  Future<void> _updateUsername(String newUsername) async {
+    try {
+      await _firestore.collection('users').doc(_auth.currentUser!.uid).update({
+        'username': newUsername,
+      });
+
+      setState(() {
+        _userName = newUsername;
+      });
+    } catch (e) {
+      print('Failed to update username: $e');
+      // Handle error gracefully, e.g., show a snackbar or alert dialog
+    }
+  }
+
+  void _editUsername() {
+    String newUsername = _userName; // Initialize with current username
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Edit Username'),
+          content: TextFormField(
+            initialValue: _userName,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              hintText: 'Enter new username',
+            ),
+            onChanged: (value) {
+              newUsername = value;
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _updateUsername(newUsername);
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Update'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -102,9 +155,24 @@ class _ProfilePicState extends State<ProfilePic> {
           ),
           Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Text(
-              _userName,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Builder(builder: (context) {
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 35),
+                    child: Text(
+                      _userName,
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+                    ),
+                  );
+                }),
+                IconButton(
+                  icon: Icon(Icons.edit),
+                  onPressed: _editUsername,
+                ),
+              ],
             ),
           ),
         ],
