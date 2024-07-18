@@ -205,20 +205,6 @@ class _PlayerState extends State<Player> {
             Navigator.of(context).pop();
           },
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.comment),
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                builder: (context) => CommentSection(
-                  description: widget.description,
-                  title: widget.title,
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(2.0),
@@ -229,7 +215,7 @@ class _PlayerState extends State<Player> {
                 // Image container taking up most of the available vertical space
                 Expanded(
                   flex:
-                      2, // Adjust this value to change the proportion of the screen height used by the image
+                      3, // Adjust this value to change the proportion of the screen height used by the image
                   child: widget.image.isNotEmpty
                       ? Image.network(
                           widget.image,
@@ -241,7 +227,7 @@ class _PlayerState extends State<Player> {
                 ),
                 // Audio player controls and information
                 Expanded(
-                  flex: 1,
+                  flex: 2,
                   child: Padding(
                     padding: EdgeInsets.all(16.0),
                     child: SingleChildScrollView(
@@ -312,6 +298,19 @@ class _PlayerState extends State<Player> {
                                     Icon(Icons.forward_5), // Forward 5 seconds
                                 iconSize: 48,
                                 onPressed: _seekForward,
+                              ),
+                              IconButton(
+                                iconSize: 35,
+                                icon: Icon(Icons.comment),
+                                onPressed: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    builder: (context) => CommentSection(
+                                      description: widget.description,
+                                      title: widget.title,
+                                    ),
+                                  );
+                                },
                               ),
                             ],
                           ),

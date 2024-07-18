@@ -35,6 +35,11 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    lintOptions {
+        // Enable detailed lint warnings for deprecated APIs and unchecked operations
+        warning 'Deprecation', 'Unchecked'
+    }
+
     kotlinOptions {
         jvmTarget = '1.8'
     }

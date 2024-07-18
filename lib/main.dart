@@ -12,10 +12,12 @@ import 'package:zeweter_app/login-signup/login.dart';
 import 'package:zeweter_app/login-signup/signup.dart';
 import 'package:zeweter_app/components/logo.dart';
 import 'package:zeweter_app/profilepage/ProfilePage.dart';
+import 'package:zeweter_app/services/Firebase_notify.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase_api().initNotifications();
   runApp(MyApp());
 }
 

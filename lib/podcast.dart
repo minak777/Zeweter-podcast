@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:zeweter_app/components/ProfilePic.dart';
-import 'package:zeweter_app/components/TitleText.dart';
+import 'package:zeweter_app/comments.dart';
 import 'package:zeweter_app/player.dart';
 
 class Podcast extends StatefulWidget {
@@ -18,10 +17,29 @@ class _PodcastState extends State<Podcast> {
   bool isFavorite = false;
   final userId = FirebaseAuth.instance.currentUser!.uid;
 
+  late String podcastImage = '';
+  late String podcastTitle = '';
+
   @override
   void initState() {
     super.initState();
+    _loadPodcastData();
     _checkIfFavorite();
+  }
+
+  Future<void> _loadPodcastData() async {
+    final doc = await FirebaseFirestore.instance
+        .collection('podcasts')
+        .doc(widget.podcastId)
+        .get();
+
+    if (doc.exists) {
+      final data = doc.data()!;
+      setState(() {
+        podcastImage = data['image'] ?? '';
+        podcastTitle = data['title'] ?? 'Podcast';
+      });
+    }
   }
 
   Future<void> _checkIfFavorite() async {
@@ -60,6 +78,33 @@ class _PodcastState extends State<Podcast> {
     });
   }
 
+  Future<void> _incrementViewCount(DocumentSnapshot episode) async {
+    final episodeRef = episode.reference;
+    final data = episode.data() as Map<String, dynamic>?;
+
+    final currentViewCount =
+        data != null && data.containsKey('viewCount') ? data['viewCount'] : 0;
+
+    await episodeRef.update({'viewCount': currentViewCount + 1});
+  }
+
+  Future<void> _toggleLike(DocumentSnapshot episode, bool isLiked) async {
+    final episodeRef = episode.reference;
+    final data = episode.data() as Map<String, dynamic>?;
+
+    List<String> likes = data?['likes']?.cast<String>() ?? [];
+
+    if (isLiked) {
+      // Remove like
+      likes.remove(userId);
+    } else {
+      // Add like
+      likes.add(userId);
+    }
+
+    await episodeRef.update({'likes': likes});
+  }
+
   @override
   Widget build(BuildContext context) {
     final episodesCollection = FirebaseFirestore.instance
@@ -80,7 +125,32 @@ class _PodcastState extends State<Podcast> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(child: ProfilePic()),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 25, top: 10),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 100,
+                    backgroundImage: podcastImage.isNotEmpty
+                        ? NetworkImage(podcastImage)
+                        : null,
+                    child: podcastImage.isEmpty
+                        ? Icon(
+                            Icons.podcasts,
+                            size: 50,
+                          )
+                        : null,
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    podcastTitle,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Padding(
@@ -97,7 +167,7 @@ class _PodcastState extends State<Podcast> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(left: 10, top: 10),
+                    padding: const EdgeInsets.only(left: 10, top: 12),
                     child: ElevatedButton(
                       onPressed: _toggleFavorite,
                       child: Text(isFavorite ? 'Favorite' : 'Add Favorite'),
@@ -125,13 +195,7 @@ class _PodcastState extends State<Podcast> {
 
                 final episodes = snapshot.data!.docs;
 
-                return GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 1,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 1,
-                  ),
+                return ListView.builder(
                   itemCount: episodes.length,
                   itemBuilder: (context, index) {
                     try {
@@ -144,9 +208,15 @@ class _PodcastState extends State<Podcast> {
                           episodeData['description'] ?? 'No description';
                       final audioUrl = episodeData['audio'] ?? '';
                       final image = episodeData['image'] ?? 'No image';
+                      final viewCount = episodeData['viewCount'] ?? 0;
+                      final likes = episodeData['likes']?.cast<String>() ?? [];
+                      final likeCount = likes.length;
+
+                      bool isLiked = likes.contains(userId);
 
                       return GestureDetector(
-                        onTap: () {
+                        onTap: () async {
+                          await _incrementViewCount(episode);
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => Player(
@@ -163,48 +233,102 @@ class _PodcastState extends State<Podcast> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                          child: Row(
                             children: [
                               Expanded(
-                                child: image.isNotEmpty
-                                    ? ClipRRect(
-                                        borderRadius: BorderRadius.vertical(
-                                            top: Radius.circular(10)),
-                                        child: Image.network(
+                                flex: 2,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.horizontal(
+                                      left: Radius.circular(10)),
+                                  child: image.isNotEmpty
+                                      ? Image.network(
                                           image,
                                           fit: BoxFit.cover,
-                                        ),
-                                      )
-                                    : Container(
-                                        color: Colors.grey,
-                                        child: Center(
-                                          child: Text(
-                                            'No Image',
-                                            style:
-                                                TextStyle(color: Colors.white),
+                                          height: 120,
+                                        )
+                                      : Container(
+                                          color: Colors.grey,
+                                          height: 120,
+                                          child: Center(
+                                            child: Text(
+                                              'No Image',
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
                                           ),
                                         ),
-                                      ),
+                                ),
                               ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      title,
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      description,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
+                              Expanded(
+                                flex: 3,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        title,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        description,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      SizedBox(height: 4),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              IconButton(
+                                                icon: Icon(
+                                                  Icons.thumb_up,
+                                                  color: isLiked
+                                                      ? Colors.blue
+                                                      : Colors.grey,
+                                                ),
+                                                onPressed: () async {
+                                                  await _toggleLike(
+                                                      episode, isLiked);
+                                                },
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text(likeCount.toString()),
+                                            ],
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.comment),
+                                            onPressed: () {
+                                              showModalBottomSheet(
+                                                context: context,
+                                                builder: (context) =>
+                                                    CommentSection(
+                                                  title: title,
+                                                  description: description,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.remove_red_eye,
+                                                size: 20,
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text(viewCount.toString()),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],

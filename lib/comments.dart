@@ -19,6 +19,7 @@ class CommentSection extends StatefulWidget {
 class _CommentSectionState extends State<CommentSection> {
   final TextEditingController _commentController = TextEditingController();
   late String _username;
+  late String _profilePicUrl;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -27,6 +28,7 @@ class _CommentSectionState extends State<CommentSection> {
   void initState() {
     super.initState();
     _username = 'Loading...'; // Set default value to 'Loading...'
+    _profilePicUrl = ''; // Default value
     _getUserInfo();
   }
 
@@ -38,22 +40,25 @@ class _CommentSectionState extends State<CommentSection> {
             await _firestore.collection('users').doc(currentUser.uid).get();
         setState(() {
           _username = userData.get('username') ?? 'Anonymous';
+          _profilePicUrl = userData.get('profilePicUrl') ?? '';
         });
       } else {
         setState(() {
           _username = 'No User';
+          _profilePicUrl = '';
         });
       }
     } catch (e) {
       print('Failed to load user data: $e');
       setState(() {
         _username = 'Error';
+        _profilePicUrl = '';
       });
     }
   }
 
   Future<void> addComment(String podcastId, String episodeId,
-      String commentText, String username) async {
+      String commentText, String username, String profilePicUrl) async {
     if (commentText.isEmpty) return; // Early exit if comment is empty
 
     try {
@@ -66,6 +71,7 @@ class _CommentSectionState extends State<CommentSection> {
         'episodeId': episodeId,
         'comment': commentText,
         'username': username,
+        'profilePicUrl': profilePicUrl,
         'timestamp': Timestamp.now(),
       });
 
@@ -108,8 +114,16 @@ class _CommentSectionState extends State<CommentSection> {
                     final data = comment.data() as Map<String, dynamic>;
                     final username = data['username'] ?? 'Anonymous';
                     final commentText = data['comment'] ?? '';
+                    final profilePicUrl = data['profilePicUrl'] ?? '';
 
                     return ListTile(
+                      leading: CircleAvatar(
+                        backgroundImage: profilePicUrl.isNotEmpty
+                            ? NetworkImage(profilePicUrl)
+                            : null,
+                        child:
+                            profilePicUrl.isEmpty ? Icon(Icons.person) : null,
+                      ),
                       title: Text(username),
                       subtitle: Text(commentText),
                     );
@@ -137,7 +151,7 @@ class _CommentSectionState extends State<CommentSection> {
                     final commentText = _commentController.text;
                     if (commentText.isNotEmpty) {
                       addComment(widget.title, widget.description, commentText,
-                          _username); // Pass the fetched username
+                          _username, _profilePicUrl); // Pass the profilePicUrl
                       _commentController.clear();
                     }
                   },

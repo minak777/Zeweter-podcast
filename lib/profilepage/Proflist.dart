@@ -17,9 +17,7 @@ class ProfList extends StatelessWidget {
       child: Material(
         elevation: 0.5,
         child: ListTile(
-          onTap: () {
-            callback();
-          },
+          onTap: callback,
           leading: Text(
             plist,
             style: TextStyle(fontSize: 20),
