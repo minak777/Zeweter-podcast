@@ -24,7 +24,7 @@ class _LogoState extends State<Logo> {
     return Scaffold(
       body: Center(
         child: Image.asset(
-          'lib/assets/logo/logo2.png',
+          'lib/assets/logo/zeweterlg.png',
           // width: 80,
           //height: 80,
         ),

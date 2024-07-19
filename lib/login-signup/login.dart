@@ -73,7 +73,8 @@ class _LoginState extends State<Login> {
               HintTxt: 'Email',
               controller: emailController,
             ),
-            SizedBox(height: 16), // Space between fields
+            SizedBox(
+                height: 16), // Space between fieldslaunch_imagelaunch_image
             InputBox(
               HintTxt: 'Password',
               controller: passwordController,
