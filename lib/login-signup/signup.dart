@@ -27,17 +27,24 @@ class _SignUpState extends State<SignUp> {
         password: passwordController.text,
       );
 
-      // If the user is created successfully, add the username to Firestore
+      // Ensure that the username is not empty
+      if (nameController.text.isEmpty) {
+        throw Exception('Username cannot be empty');
+      }
+
+      // Add the user data to Firestore
       await firestoreService.addUser({
         'userId': userCredential.user!.uid,
         'username': nameController.text,
+        'profilePicUrl': '', // Default to empty string if not uploaded
       });
 
-      // Navigate to landing page or any other page
+      // Navigate to login or landing page
       GoRouter.of(context).go('/login');
     } catch (e) {
       print('Failed to sign up: $e');
       // Handle sign up errors here
+      // Optionally, show an error message to the user
     }
   }
 
@@ -61,13 +68,13 @@ class _SignUpState extends State<SignUp> {
             padding: const EdgeInsets.only(top: 10),
             child: ElevatedButton(
               onPressed: signUp,
-              child: const Text(' Sign up  '),
+              child: const Text('Sign up'),
             ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text("have an account? "),
+              const Text("Have an account? "),
               TextButton(
                 onPressed: () {
                   GoRouter.of(context).go('/login');

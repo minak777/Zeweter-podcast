@@ -19,8 +19,8 @@ class _ProfilePicState extends State<ProfilePic> {
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final ImagePicker _picker = ImagePicker();
 
-  late String _userName = '';
-  late String _profilePicUrl = '';
+  String _userName = '';
+  String _profilePicUrl = '';
 
   @override
   void initState() {
@@ -35,12 +35,16 @@ class _ProfilePicState extends State<ProfilePic> {
         final userData =
             await _firestore.collection('users').doc(currentUser.uid).get();
         setState(() {
-          _userName = userData.get('username');
+          _userName = userData.get('username') ?? 'Anonymous';
           _profilePicUrl = userData.get('profilePicUrl') ?? '';
         });
       }
     } catch (e) {
       print('Failed to load user data: $e');
+      setState(() {
+        _userName = 'Anonymous';
+        _profilePicUrl = ''; // Default value for profile picture
+      });
     }
   }
 
@@ -158,16 +162,13 @@ class _ProfilePicState extends State<ProfilePic> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Builder(builder: (context) {
-                  return Padding(
-                    padding: const EdgeInsets.only(left: 35),
-                    child: Text(
-                      _userName,
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
-                    ),
-                  );
-                }),
+                Padding(
+                  padding: const EdgeInsets.only(left: 35),
+                  child: Text(
+                    _userName,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+                  ),
+                ),
                 IconButton(
                   icon: Icon(Icons.edit),
                   onPressed: _editUsername,
