@@ -1,7 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:zeweter_app/components/input_fields.dart';
+import 'package:zeweter_app/loading.dart';
 import 'package:zeweter_app/services/firestore.dart';
 
 class SignUp extends StatefulWidget {
@@ -15,75 +16,115 @@ class _SignUpState extends State<SignUp> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirestoreService firestoreService = FirestoreService();
 
-  TextEditingController nameController = TextEditingController();
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  bool _isLoading = false;
+  String? _errorMessage;
 
   Future<void> signUp() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
+      final email = emailController.text.trim();
+      final password = passwordController.text.trim();
+      final username = nameController.text.trim();
+
+      // Check if the username and password fields are not empty
+      if (email.isEmpty || password.isEmpty || username.isEmpty) {
+        throw Exception('Please fill in all fields.');
+      }
+
       final UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
-        email: emailController.text,
-        password: passwordController.text,
+        email: email,
+        password: password,
       );
-
-      // Ensure that the username is not empty
-      if (nameController.text.isEmpty) {
-        throw Exception('Username cannot be empty');
-      }
 
       // Add the user data to Firestore
       await firestoreService.addUser({
         'userId': userCredential.user!.uid,
-        'username': nameController.text,
+        'username': username,
         'profilePicUrl': '', // Default to empty string if not uploaded
       });
 
-      // Navigate to login or landing page
+      // Navigate to login page or any other page
       GoRouter.of(context).go('/login');
     } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+      });
       print('Failed to sign up: $e');
-      // Handle sign up errors here
-      // Optionally, show an error message to the user
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Padding(
-            padding: EdgeInsets.only(bottom: 50),
-            child: Text(
-              'Sign up',
-              style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-            ),
-          ),
-          InputBox(HintTxt: 'User name', controller: nameController),
-          InputBox(HintTxt: 'Email', controller: emailController),
-          InputBox(HintTxt: 'Password', controller: passwordController),
-          Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: ElevatedButton(
-              onPressed: signUp,
-              child: const Text('Sign up'),
-            ),
-          ),
-          Row(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 200, left: 20, right: 20),
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text("Have an account? "),
-              TextButton(
-                onPressed: () {
-                  GoRouter.of(context).go('/login');
-                },
-                child: const Text('Login'),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 50),
+                child: Text(
+                  'Sign up',
+                  style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                ),
+              ),
+              InputBox(
+                HintTxt: 'User name',
+                controller: nameController,
+              ),
+              SizedBox(height: 16), // Space between fields
+              InputBox(
+                HintTxt: 'Email',
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+              ),
+              SizedBox(height: 16), // Space between fields
+              InputBox(
+                HintTxt: 'Password',
+                controller: passwordController,
+                obscureText: true, // Mask the password input
+              ),
+              SizedBox(
+                  height: 20), // Space between fields and loading/error widget
+              LoadingWithError(
+                isLoading: _isLoading,
+                errorText: _errorMessage,
+              ),
+              SizedBox(
+                  height: 20), // Space between loading/error widget and button
+              ElevatedButton(
+                onPressed: signUp,
+                child: const Text('Sign up'),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Have an account? "),
+                  TextButton(
+                    onPressed: () {
+                      GoRouter.of(context).go('/login');
+                    },
+                    child: const Text('Login'),
+                  ),
+                ],
               ),
             ],
-          )
-        ],
+          ),
+        ),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:zeweter_app/components/ProfilePic.dart';
 import 'package:zeweter_app/profilepage/Proflist.dart';
 import 'package:zeweter_app/profilepage/editprof.dart';
+// Import the new page
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -49,46 +50,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
                 onTap: () {
-                  // Show a confirmation dialog before deleting the account
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      content: Padding(
-                        padding: const EdgeInsets.only(left: 20, top: 10),
-                        child: Text(
-                          'Are you sure you want to delete your account?',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      actions: [
-                        Padding(
-                          padding: const EdgeInsets.only(right: 30),
-                          child: TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(); // Close the dialog
-                            },
-                            child: Text(
-                              'Cancel',
-                              style: TextStyle(fontSize: 20),
-                            ),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () async {
-                            // Delete user account
-                            await FirebaseAuth.instance.currentUser!.delete();
-                            // Navigate to login page
-                            GoRouter.of(context).go('/login');
-                          },
-                          child: Text(
-                            'Delete',
-                            style: TextStyle(color: Colors.red, fontSize: 20),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
+                  // Navigate to authentication page before deleting account
+                  GoRouter.of(context).go('/AuthConfirmPage');
                 },
               ),
             ],

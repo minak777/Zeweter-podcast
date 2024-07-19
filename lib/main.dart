@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:zeweter_app/Searchpage.dart';
+import 'package:zeweter_app/auth_confirm_page.dart';
 import 'package:zeweter_app/favpages/favpage.dart';
 import 'package:zeweter_app/firebase_options.dart';
 import 'package:zeweter_app/homepage/HomePage.dart';
@@ -47,6 +48,9 @@ class MyApp extends StatelessWidget {
         },
       ),
       GoRoute(path: '/favorites', builder: (context, state) => const FavPage()),
+      GoRoute(
+          path: '/AuthConfirmPage',
+          builder: (context, state) => const AuthConfirmPage()),
       GoRoute(
           path: '/profile', builder: (context, state) => const ProfilePage()),
     ],

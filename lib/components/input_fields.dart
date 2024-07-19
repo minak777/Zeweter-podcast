@@ -5,10 +5,14 @@ class InputBox extends StatelessWidget {
     super.key,
     required this.HintTxt,
     required this.controller,
+    this.obscureText = false, // Default to false for non-password fields
+    this.keyboardType = TextInputType.text, // Default to text keyboard type
   });
 
   final String HintTxt;
   final TextEditingController controller;
+  final bool obscureText;
+  final TextInputType keyboardType;
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +20,9 @@ class InputBox extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextField(
-          controller: controller, // Use the controller passed from the parent
+          controller: controller,
+          obscureText: obscureText,
+          keyboardType: keyboardType,
           decoration: InputDecoration(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
