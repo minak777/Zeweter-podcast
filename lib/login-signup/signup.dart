@@ -34,7 +34,7 @@ class _SignUpState extends State<SignUp> {
       final password = passwordController.text.trim();
       final username = nameController.text.trim();
 
-      // Check if the username and password fields are not empty
+      // Check if the username, email, and password fields are not empty
       if (email.isEmpty || password.isEmpty || username.isEmpty) {
         throw Exception('Please fill in all fields.');
       }
@@ -52,8 +52,27 @@ class _SignUpState extends State<SignUp> {
         'profilePicUrl': '', // Default to empty string if not uploaded
       });
 
-      // Navigate to login page or any other page
-      GoRouter.of(context).go('/login');
+      // Send email verification
+      await userCredential.user!.sendEmailVerification();
+
+      // Show a dialog or snackbar to inform the user to check their email
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Verify Your Email'),
+          content: Text(
+              'A verification email has been sent to ${userCredential.user!.email}. Please check your email and verify your account before logging in.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                GoRouter.of(context).go('/login');
+              },
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();
